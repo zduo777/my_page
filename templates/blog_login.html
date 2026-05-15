@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}博客管理登录 - 清晨点支烟{% endblock %}
+
+{% block head %}
+<style>
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.login-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-card h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.login-form input[type="password"] {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+}
+
+.login-form input[type="password"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.login-btn {
+    padding: 1rem 1.5rem;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-bg-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.login-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+.login-error {
+    color: #e57373;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.back-link {
+    display: block;
+    margin-top: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>博客管理</h1>
+        <p class="login-subtitle">请输入密码以写博客</p>
+
+        <form class="login-form" method="POST" action="/blog/verify">
+            <input type="password" name="password" placeholder="输入密码" required autofocus>
+            <button type="submit" class="login-btn">登录</button>
+            {% if error %}
+            <p class="login-error">{{ error }}</p>
+            {% endif %}
+        </form>
+
+        <a href="/blog" class="back-link">← 返回博客列表</a>
+    </div>
+</div>
+{% endblock %}

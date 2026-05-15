@@ -84,17 +84,43 @@
 </div>
 
 <script>
-fetch('https://v2.jinrishici.com/sentence')
-    .then(res => res.json())
+// 添加时间戳防止缓存
+const timestamp = new Date().getTime();
+fetch(`https://v2.jinrishici.com/sentence?t=${timestamp}`)
+    .then(res => {
+        if (!res.ok) throw new Error('API请求失败');
+        return res.json();
+    })
     .then(data => {
-        document.getElementById('quoteContent').textContent = data.data.content;
-        document.getElementById('quoteAuthor').textContent = '—— ' + (data.data.origin.author || '佚名');
-        document.getElementById('quoteSource').textContent = '《' + data.data.origin.title + '》';
+        if (data && data.data && data.data.content) {
+            document.getElementById('quoteContent').textContent = data.data.content;
+            const author = data.data.origin?.author || '佚名';
+            const title = data.data.origin?.title || '';
+            document.getElementById('quoteAuthor').textContent = '—— ' + author;
+            document.getElementById('quoteSource').textContent = title ? '《' + title + '》' : '';
+        } else {
+            throw new Error('数据格式错误');
+        }
     })
     .catch(err => {
-        document.getElementById('quoteContent').textContent = '山高月小，水落石出';
-        document.getElementById('quoteAuthor').textContent = '—— 苏轼';
-        document.getElementById('quoteSource').textContent = '《后赤壁赋》';
+        // 本地备用句子库
+        const fallbackQuotes = [
+            { content: '山高月小，水落石出', author: '苏轼', title: '后赤壁赋' },
+            { content: '人生如梦，一尊还酹江月', author: '苏轼', title: '念奴娇·赤壁怀古' },
+            { content: '落霞与孤鹜齐飞，秋水共长天一色', author: '王勃', title: '滕王阁序' },
+            { content: '海内存知己，天涯若比邻', author: '王勃', title: '送杜少府之任蜀州' },
+            { content: '纸上得来终觉浅，绝知此事要躬行', author: '陆游', title: '冬夜读书示子聿' },
+            { content: '天生我材必有用，千金散尽还复来', author: '李白', title: '将进酒' },
+            { content: '长风破浪会有时，直挂云帆济沧海', author: '李白', title: '行路难' },
+            { content: '会当凌绝顶，一览众山小', author: '杜甫', title: '望岳' },
+            { content: '不畏浮云遮望眼，自缘身在最高层', author: '王安石', title: '登飞来峰' },
+            { content: '千磨万击还坚劲，任尔东西南北风', author: '郑燮', title: '竹石' }
+        ];
+        // 随机选择一句
+        const randomQuote = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        document.getElementById('quoteContent').textContent = randomQuote.content;
+        document.getElementById('quoteAuthor').textContent = '—— ' + randomQuote.author;
+        document.getElementById('quoteSource').textContent = '《' + randomQuote.title + '》';
     });
 </script>
 {% endblock %}

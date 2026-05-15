@@ -30,6 +30,46 @@
     letter-spacing: 0.05em;
 }
 
+.page-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.write-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-bg-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.write-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+.rescan-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.rescan-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
 .article-list {
     display: flex;
     flex-direction: column;
@@ -70,6 +110,12 @@
     transform: scaleY(1);
 }
 
+.card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
 .card-title {
     font-family: var(--font-body);
     font-size: 1.25rem;
@@ -100,6 +146,96 @@
     display: inline-block;
     margin-right: 0.5rem;
 }
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.edit-btn, .delete-btn {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.edit-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.delete-btn {
+    border-color: #e57373;
+    color: #e57373;
+}
+
+.delete-btn:hover {
+    background: rgba(229, 115, 115, 0.1);
+}
+
+/* 编辑模式样式 */
+.edit-form {
+    display: none;
+}
+
+.edit-form.active {
+    display: block;
+}
+
+.edit-title-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.edit-content-input {
+    width: 100%;
+    min-height: 200px;
+    padding: 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.save-edit-btn {
+    padding: 0.5rem 1rem;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-bg-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.cancel-edit-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 
@@ -110,15 +246,128 @@
         <p class="page-subtitle">记录编程心得与技术探索</p>
     </header>
 
+    <div class="page-actions">
+        {% if session.get('blog_authenticated') %}
+        <a href="/write" class="write-btn">+ 写博客</a>
+        <button class="rescan-btn" id="rescanBtn">重新扫描文章</button>
+        <a href="/blog/logout" class="rescan-btn">退出管理</a>
+        {% else %}
+        <a href="/write" class="write-btn">登录写博客</a>
+        {% endif %}
+    </div>
+
     <div class="article-list">
         {% for post in posts %}
-        <a href="{{ url_for('post', slug=post.slug) }}" class="article-card">
-            <h2 class="card-title">{{ post.title }}</h2>
-            <div class="card-meta">
-                <span class="card-date">{{ post.created_at }}</span>
+        <div class="article-card" data-slug="{{ post.slug }}">
+            <div class="card-row">
+                <a href="{{ url_for('post', slug=post.slug) }}" style="flex: 1;">
+                    <h2 class="card-title">{{ post.title }}</h2>
+                    <div class="card-meta">
+                        <span class="card-date">{{ post.created_at }}</span>
+                    </div>
+                </a>
+                {% if session.get('blog_authenticated') %}
+                <div class="card-actions">
+                    <button class="edit-btn" onclick="startEdit('{{ post.slug }}')">编辑</button>
+                    <button class="delete-btn" onclick="deletePost('{{ post.slug }}')">删除</button>
+                </div>
+                {% endif %}
             </div>
-        </a>
+
+            <!-- 编辑表单 -->
+            {% if session.get('blog_authenticated') %}
+            <div class="edit-form" id="edit-form-{{ post.slug }}">
+                <input type="text" class="edit-title-input" id="edit-title-{{ post.slug }}" value="{{ post.title }}">
+                <textarea class="edit-content-input" id="edit-content-{{ post.slug }}"></textarea>
+                <div class="edit-actions">
+                    <button class="save-edit-btn" onclick="saveEdit('{{ post.slug }}')">保存</button>
+                    <button class="cancel-edit-btn" onclick="cancelEdit('{{ post.slug }}')">取消</button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
         {% endfor %}
     </div>
 </div>
+
+{% if session.get('blog_authenticated') %}
+<script>
+// 重新扫描文章
+document.getElementById('rescanBtn').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/api/blog/rescan', { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            alert('扫描完成！');
+            window.location.reload();
+        }
+    } catch (error) {
+        alert('扫描失败');
+    }
+});
+
+// 删除文章
+async function deletePost(slug) {
+    if (!confirm('确定要删除这篇文章吗？')) return;
+
+    try {
+        const response = await fetch(`/api/blog/delete/${slug}`, { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            window.location.reload();
+        } else {
+            alert('删除失败: ' + result.error);
+        }
+    } catch (error) {
+        alert('删除失败');
+    }
+}
+
+// 开始编辑
+async function startEdit(slug) {
+    const editForm = document.getElementById(`edit-form-${slug}`);
+    editForm.classList.add('active');
+
+    // 获取文章内容
+    try {
+        const response = await fetch(`/api/blog/raw/${slug}`);
+        const result = await response.json();
+        if (result.success || result.title) {
+            document.getElementById(`edit-title-${slug}`).value = result.title;
+            document.getElementById(`edit-content-${slug}`).value = result.content;
+        }
+    } catch (error) {
+        console.error('获取内容失败');
+    }
+}
+
+// 取消编辑
+function cancelEdit(slug) {
+    document.getElementById(`edit-form-${slug}`).classList.remove('active');
+}
+
+// 保存编辑
+async function saveEdit(slug) {
+    const title = document.getElementById(`edit-title-${slug}`).value;
+    const content = document.getElementById(`edit-content-${slug}`).value;
+
+    try {
+        const response = await fetch(`/api/blog/update/${slug}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('保存成功！');
+            window.location.reload();
+        } else {
+            alert('保存失败: ' + result.error);
+        }
+    } catch (error) {
+        alert('保存失败');
+    }
+}
+</script>
+{% endif %}
 {% endblock %}

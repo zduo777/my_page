@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}写博客 - 清晨点支烟{% endblock %}
+
+{% block head %}
+<style>
+.write-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+}
+
+.logout-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.logout-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.write-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.title-input {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 1.1rem;
+    font-family: var(--font-body);
+}
+
+.title-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.content-editor {
+    width: 100%;
+    min-height: 400px;
+    padding: 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.content-editor:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.editor-tip {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    padding: 0.75rem 2rem;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-bg-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.save-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+.preview-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.preview-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+/* 预览模式 */
+.preview-mode {
+    display: none;
+}
+
+.preview-mode.active {
+    display: block;
+}
+
+.preview-content {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+}
+
+.preview-content h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.preview-content pre {
+    background: var(--color-bg-tertiary);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+}
+
+.preview-content code {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="write-page">
+    <header class="page-header">
+        <h1>写博客</h1>
+        <a href="/blog/logout" class="logout-btn">退出登录</a>
+    </header>
+
+    <form class="write-form" id="writeForm">
+        <div class="form-group">
+            <label for="title">标题</label>
+            <input type="text" id="title" class="title-input" placeholder="输入文章标题..." required>
+        </div>
+
+        <div class="form-group">
+            <label for="content">内容 (Markdown 格式)</label>
+            <textarea id="content" class="content-editor" placeholder="# 标题
+
+输入 Markdown 内容...
+
+- 支持列表
+- 支持 **加粗** 和 *斜体*
+- 支持 `代码块`" required></textarea>
+            <p class="editor-tip">支持 Markdown 格式：# 标题、**加粗**、*斜体*、[链接](url)、`代码` 等</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="preview-btn" id="previewBtn">预览</button>
+            <button type="submit" class="save-btn">发布文章</button>
+        </div>
+    </form>
+
+    <!-- 预览区域 -->
+    <div class="preview-mode" id="previewMode">
+        <div class="form-actions" style="margin-bottom: 1rem;">
+            <button type="button" class="preview-btn" id="backEditBtn">返回编辑</button>
+        </div>
+        <div class="preview-content" id="previewContent"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+document.getElementById('writeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+
+    try {
+        const response = await fetch('/api/blog/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('文章发布成功！');
+            window.location.href = '/blog';
+        } else {
+            alert('发布失败: ' + (result.error || '未知错误'));
+        }
+    } catch (error) {
+        alert('发布失败，请检查网络');
+    }
+});
+
+// 预览功能
+document.getElementById('previewBtn').addEventListener('click', function() {
+    const content = document.getElementById('content').value;
+    const previewContent = document.getElementById('previewContent');
+    const previewMode = document.getElementById('previewMode');
+
+    previewContent.innerHTML = marked.parse(content);
+    previewMode.classList.add('active');
+    document.getElementById('writeForm').style.display = 'none';
+});
+
+document.getElementById('backEditBtn').addEventListener('click', function() {
+    document.getElementById('previewMode').classList.remove('active');
+    document.getElementById('writeForm').style.display = 'flex';
+});
+</script>
+{% endblock %}
