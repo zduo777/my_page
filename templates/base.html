@@ -15,6 +15,62 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     {% block head %}{% endblock %}
+<style>
+/* 全局设置按钮触发区域 */
+.global-settings-trigger {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    z-index: 100;
+}
+
+.global-settings-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all var(--transition-medium);
+    z-index: 99;
+}
+
+.global-settings-trigger:hover .global-settings-btn {
+    opacity: 1;
+}
+
+.global-settings-btn:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent);
+}
+
+.global-settings-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--color-text-secondary);
+    transition: fill var(--transition-fast);
+}
+
+.global-settings-btn:hover svg {
+    fill: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+    .global-settings-trigger,
+    .global-settings-btn {
+        display: none;
+    }
+}
+</style>
 </head>
 <body>
     <!-- Header -->
@@ -63,6 +119,15 @@
         <p>© 2026 清晨点支烟 · 以文字记录思考</p>
     </footer>
 
+    <!-- 全局设置按钮 -->
+    <div class="global-settings-trigger">
+        <button class="global-settings-btn" id="globalSettingsBtn" aria-label="打开设置">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.26-1.77c.2-.16.25-.46.12-.7l-2-3.46c-.13-.24-.43-.32-.66-.2l-2.6 1.1a7.4 7.4 0 0 0-1.55-.85l-.4-2.76c-.03-.26-.26-.46-.53-.46h-4c-.27 0-.5.2-.53.46l-.4 2.76c-.56.22-1.08.51-1.55.85l-2.6-1.1c-.23-.12-.53-.04-.66.2l-2 3.46c-.13.24-.08.54.12.7L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.26 1.77c-.2.16-.25.46-.12.7l2 3.46c.13.24.43.32.66.2l2.6-1.1c.47.34.99.63 1.55.85l.4 2.76c.03.26.26.46.53.46h4c.27 0 .5-.2.53-.46l.4-2.76c.56-.22 1.08-.51 1.55-.85l2.6 1.1c.23.12.53.04.66-.2l2-3.46c.13-.24.08-.54-.12-.7l-2.26-1.77Z"/>
+            </svg>
+        </button>
+    </div>
+
     <script>
     document.getElementById('menuToggle').addEventListener('click', function() {
         document.getElementById('fullscreenMenu').classList.add('active');
@@ -79,6 +144,11 @@
             this.classList.remove('active');
             document.body.style.overflow = '';
         }
+    });
+
+    // 全局设置按钮
+    document.getElementById('globalSettingsBtn').addEventListener('click', function() {
+        window.location.href = '/settings';
     });
     </script>
 

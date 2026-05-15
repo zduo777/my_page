@@ -1,0 +1,749 @@
+{% extends 'base.html' %}
+
+{% block title %}导航设置 - 清晨点支烟{% endblock %}
+
+{% block head %}
+<style>
+.nav-settings-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-family: var(--font-body);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.page-header p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color var(--transition-fast);
+}
+
+.back-link:hover {
+    color: var(--color-accent);
+}
+
+/* 分类总览区域 */
+.category-overview {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.category-overview-title {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 40px;
+}
+
+.category-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    cursor: grab;
+    user-select: none;
+    transition: all var(--transition-fast);
+}
+
+.category-tag:hover {
+    border-color: var(--color-accent);
+}
+
+/* 拖拽中的原始元素 - 虚化 */
+.category-tag.dragging--original {
+    opacity: 0.2;
+}
+
+/* 跟随鼠标的 mirror 元素 */
+.category-tag.dragging--mirror {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.95;
+    transform: scale(1.05);
+    border-color: var(--color-accent);
+    box-shadow: 0 12px 28px rgba(212, 165, 116, 0.35), 0 4px 10px rgba(0,0,0,0.25);
+    background: var(--color-bg-card-hover);
+    cursor: grabbing;
+    transition: none;
+}
+
+/* 占位符 placeholder */
+.category-tag.dragging--placeholder {
+    opacity: 0.4;
+    background: rgba(212, 165, 116, 0.2);
+    border-color: var(--color-accent);
+    border-style: dashed;
+}
+
+.category-tag .tag-name {
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+}
+
+.category-tag .tag-count {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+}
+
+/* 分类卡片设置项 */
+.settings-category {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: border-color var(--transition-fast);
+}
+
+.settings-category:hover {
+    border-color: var(--color-border);
+}
+
+.settings-category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.category-name-input {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.category-name-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.delete-category-btn {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid #e57373;
+    border-radius: var(--radius-sm);
+    color: #e57373;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.delete-category-btn:hover {
+    background: rgba(229, 115, 115, 0.1);
+}
+
+/* 链接设置项 */
+.settings-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+}
+
+.link-drag-handle {
+    cursor: grab;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    padding: 0.25rem;
+}
+
+.link-drag-handle:hover {
+    color: var(--color-accent);
+}
+
+/* 拖拽中的原始元素 - 虚化 */
+.settings-link-item.dragging--original {
+    opacity: 0.2;
+}
+
+/* 跟随鼠标的 mirror 元素 */
+.settings-link-item.dragging--mirror {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.95;
+    transform: scale(1.02);
+    border-color: var(--color-accent);
+    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.3), 0 2px 8px rgba(0,0,0,0.2);
+    background: var(--color-bg-tertiary);
+    cursor: grabbing;
+    transition: none;
+}
+
+/* 占位符 placeholder */
+.settings-link-item.dragging--placeholder {
+    opacity: 0.4;
+    background: rgba(212, 165, 116, 0.2);
+    border-color: var(--color-accent);
+    border-style: dashed;
+}
+
+.link-input {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.6rem;
+    color: var(--color-text-primary);
+    font-size: 0.85rem;
+}
+
+.link-input.name-input {
+    width: 120px;
+}
+
+.link-input.url-input {
+    width: 180px;
+}
+
+.link-input.desc-input {
+    flex: 1;
+}
+
+.link-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.delete-link-btn {
+    padding: 0.3rem 0.6rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.delete-link-btn:hover {
+    color: #e57373;
+    border-color: #e57373;
+}
+
+.add-link-btn {
+    padding: 0.5rem 1rem;
+    background: var(--color-accent-subtle);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-top: 0.5rem;
+}
+
+.add-link-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-bg-primary);
+}
+
+.add-category-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.add-category-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.settings-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-top: 1px solid var(--color-border);
+    margin-top: 0.5rem;
+}
+
+.save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--color-accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-bg-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.save-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+.back-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.success-msg {
+    color: #4caf50;
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.error-msg {
+    color: #e57373;
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nav-settings-page">
+    <header class="page-header">
+        <h1>导航设置</h1>
+        <p>拖拽调整分类和链接顺序</p>
+    </header>
+
+    <a href="/settings" class="back-link">← 返回设置</a>
+
+    <div id="settingsBody">
+        <!-- 动态填充 -->
+    </div>
+
+    <div class="settings-footer">
+        <a href="/settings" class="back-btn">返回</a>
+        <button class="save-btn" id="saveBtn">保存设置</button>
+    </div>
+
+    <p class="success-msg" id="successMsg" style="display: none;"></p>
+    <p class="error-msg" id="errorMsg" style="display: none;"></p>
+</div>
+
+<script>
+(function() {
+    const settingsBody = document.getElementById('settingsBody');
+    const saveBtn = document.getElementById('saveBtn');
+    let navData = null;
+
+    // 加载导航数据
+    async function loadNavData() {
+        try {
+            const response = await fetch('/api/nav');
+            navData = await response.json();
+            renderSettings();
+        } catch (error) {
+            console.error('加载失败:', error);
+            document.getElementById('errorMsg').textContent = '加载导航数据失败';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    }
+
+    // 渲染设置面板
+    function renderSettings() {
+        settingsBody.innerHTML = '';
+
+        // 分类总览区域
+        const overviewSection = document.createElement('div');
+        overviewSection.className = 'category-overview';
+        overviewSection.innerHTML = `
+            <div class="category-overview-title">分类总览（拖拽调整顺序）</div>
+            <div class="category-tags" id="categoryTags"></div>
+        `;
+        settingsBody.appendChild(overviewSection);
+
+        const categoryTags = overviewSection.querySelector('#categoryTags');
+
+        // 渲染分类标签
+        navData.categories.forEach((category, catIndex) => {
+            const tag = document.createElement('div');
+            tag.className = 'category-tag';
+            tag.dataset.index = catIndex;
+            tag.innerHTML = `
+                <span class="tag-name">${category.name}</span>
+                <span class="tag-count">${category.links.length}</span>
+            `;
+            categoryTags.appendChild(tag);
+        });
+
+        // 分类标签拖拽
+        setupTagDrag(categoryTags);
+
+        // 详细编辑区域
+        navData.categories.forEach((category, catIndex) => {
+            const categoryEl = document.createElement('div');
+            categoryEl.className = 'settings-category';
+            categoryEl.dataset.catIndex = catIndex;
+
+            categoryEl.innerHTML = `
+                <div class="settings-category-header">
+                    <input type="text" class="category-name-input" value="${category.name}" data-cat-index="${catIndex}">
+                    <button class="delete-category-btn" data-cat-index="${catIndex}">删除分类</button>
+                </div>
+                <div class="settings-links" data-cat-index="${catIndex}">
+                    ${category.links.map((link, linkIndex) => `
+                        <div class="settings-link-item" data-cat-index="${catIndex}" data-link-index="${linkIndex}">
+                            <span class="link-drag-handle">⋮⋮</span>
+                            <input type="text" class="link-input name-input" value="${link.name}" placeholder="名称">
+                            <input type="text" class="link-input url-input" value="${link.url}" placeholder="URL">
+                            <input type="text" class="link-input desc-input" value="${link.description}" placeholder="描述">
+                            <button class="delete-link-btn">删除</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="add-link-btn" data-cat-index="${catIndex}">+ 添加链接</button>
+            `;
+
+            settingsBody.appendChild(categoryEl);
+        });
+
+        // 添加分类按钮
+        const addCategoryBtn = document.createElement('button');
+        addCategoryBtn.className = 'add-category-btn';
+        addCategoryBtn.textContent = '+ 添加新分类';
+        addCategoryBtn.addEventListener('click', addNewCategory);
+        settingsBody.appendChild(addCategoryBtn);
+
+        // 绑定详细编辑事件
+        bindDetailEvents();
+    }
+
+    // 分类标签拖拽设置
+    function setupTagDrag(container) {
+        const tags = container.querySelectorAll('.category-tag');
+
+        tags.forEach(tag => {
+            tag.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+
+                const sourceElement = this;
+                const sourceRect = this.getBoundingClientRect();
+                const sourceIndex = parseInt(this.dataset.index);
+                const offsetX = e.clientX - sourceRect.left;
+                const offsetY = e.clientY - sourceRect.top;
+
+                // 创建 mirror 元素
+                const mirrorElement = this.cloneNode(true);
+                mirrorElement.classList.add('dragging--mirror');
+                mirrorElement.style.cssText = `
+                    width: ${sourceRect.width}px;
+                    height: ${sourceRect.height}px;
+                    left: ${sourceRect.left}px;
+                    top: ${sourceRect.top}px;
+                `;
+                document.body.appendChild(mirrorElement);
+
+                sourceElement.classList.add('dragging--original');
+
+                const allTags = Array.from(container.querySelectorAll('.category-tag'));
+                const tagRects = allTags.map(t => t.getBoundingClientRect());
+                let targetIndex = sourceIndex;
+
+                const onMouseMove = (e) => {
+                    mirrorElement.style.left = `${e.clientX - offsetX}px`;
+                    mirrorElement.style.top = `${e.clientY - offsetY}px`;
+
+                    const mouseX = e.clientX;
+                    allTags.forEach(t => t.classList.remove('dragging--placeholder'));
+
+                    let newTargetIndex = sourceIndex;
+                    for (let i = 0; i < allTags.length; i++) {
+                        if (allTags[i] === sourceElement) continue;
+                        const rect = tagRects[i];
+                        const centerX = rect.left + rect.width / 2;
+                        if (mouseX < centerX) {
+                            newTargetIndex = i;
+                            break;
+                        } else if (mouseX >= centerX && mouseX <= rect.right) {
+                            newTargetIndex = mouseX < centerX ? i : i + 1;
+                            break;
+                        }
+                    }
+
+                    if (mouseX > tagRects[allTags.length - 1].right) {
+                        newTargetIndex = allTags.length;
+                    }
+
+                    let insertIndex = newTargetIndex;
+                    if (sourceIndex < newTargetIndex) {
+                        insertIndex = newTargetIndex - 1;
+                    }
+                    insertIndex = Math.max(0, Math.min(navData.categories.length - 1, insertIndex));
+                    targetIndex = insertIndex;
+
+                    if (insertIndex !== sourceIndex) {
+                        const placeholderTag = allTags[insertIndex];
+                        if (placeholderTag && placeholderTag !== sourceElement) {
+                            placeholderTag.classList.add('dragging--placeholder');
+                        }
+                    }
+                };
+
+                const onMouseUp = () => {
+                    mirrorElement.remove();
+                    sourceElement.classList.remove('dragging--original');
+                    allTags.forEach(t => t.classList.remove('dragging--placeholder'));
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    if (targetIndex !== sourceIndex) {
+                        const moved = navData.categories.splice(sourceIndex, 1)[0];
+                        navData.categories.splice(targetIndex, 0, moved);
+                        renderSettings();
+                    }
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
+    // 绑定详细编辑事件
+    function bindDetailEvents() {
+        settingsBody.querySelectorAll('.category-name-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories[catIndex].name = this.value;
+                const tag = settingsBody.querySelector(`.category-tag[data-index="${catIndex}"] .tag-name`);
+                if (tag) tag.textContent = this.value;
+            });
+        });
+
+        settingsBody.querySelectorAll('.delete-category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories.splice(catIndex, 1);
+                renderSettings();
+            });
+        });
+
+        setupLinkDrag();
+
+        settingsBody.querySelectorAll('.settings-link-item').forEach(item => {
+            const catIndex = parseInt(item.dataset.catIndex);
+            const linkIndex = parseInt(item.dataset.linkIndex);
+
+            item.querySelectorAll('.link-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const field = this.classList.contains('name-input') ? 'name' :
+                                  this.classList.contains('url-input') ? 'url' : 'description';
+                    navData.categories[catIndex].links[linkIndex][field] = this.value;
+                });
+            });
+
+            item.querySelector('.delete-link-btn').addEventListener('click', function() {
+                navData.categories[catIndex].links.splice(linkIndex, 1);
+                renderSettings();
+            });
+        });
+
+        settingsBody.querySelectorAll('.add-link-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories[catIndex].links.push({
+                    name: '新链接',
+                    url: 'https://',
+                    description: '描述'
+                });
+                renderSettings();
+            });
+        });
+    }
+
+    // 链接拖拽设置
+    function setupLinkDrag() {
+        const handles = settingsBody.querySelectorAll('.link-drag-handle');
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+
+                const sourceElement = this.closest('.settings-link-item');
+                const sourceRect = sourceElement.getBoundingClientRect();
+                const catIndex = parseInt(sourceElement.dataset.catIndex);
+                const sourceLinkIndex = parseInt(sourceElement.dataset.linkIndex);
+                const offsetX = e.clientX - sourceRect.left;
+                const offsetY = e.clientY - sourceRect.top;
+
+                const mirrorElement = sourceElement.cloneNode(true);
+                mirrorElement.classList.add('dragging--mirror');
+                mirrorElement.style.cssText = `
+                    width: ${sourceRect.width}px;
+                    height: ${sourceRect.height}px;
+                    left: ${sourceRect.left}px;
+                    top: ${sourceRect.top}px;
+                `;
+                document.body.appendChild(mirrorElement);
+
+                sourceElement.classList.add('dragging--original');
+
+                const linksContainer = sourceElement.closest('.settings-links');
+                const allLinks = Array.from(linksContainer.querySelectorAll('.settings-link-item'));
+                const linkRects = allLinks.map(l => l.getBoundingClientRect());
+                let targetIndex = sourceLinkIndex;
+
+                const onMouseMove = (e) => {
+                    mirrorElement.style.left = `${e.clientX - offsetX}px`;
+                    mirrorElement.style.top = `${e.clientY - offsetY}px`;
+
+                    const mouseY = e.clientY;
+                    allLinks.forEach(l => l.classList.remove('dragging--placeholder'));
+
+                    let newTargetIndex = sourceLinkIndex;
+                    for (let i = 0; i < allLinks.length; i++) {
+                        if (allLinks[i] === sourceElement) continue;
+                        const rect = linkRects[i];
+                        const centerY = rect.top + rect.height / 2;
+                        if (mouseY < centerY) {
+                            newTargetIndex = i;
+                            break;
+                        } else if (mouseY >= centerY && mouseY <= rect.bottom) {
+                            newTargetIndex = mouseY < centerY ? i : i + 1;
+                            break;
+                        }
+                    }
+
+                    if (mouseY > linkRects[allLinks.length - 1].bottom) {
+                        newTargetIndex = allLinks.length;
+                    }
+
+                    let insertIndex = newTargetIndex;
+                    if (sourceLinkIndex < newTargetIndex) {
+                        insertIndex = newTargetIndex - 1;
+                    }
+                    const linksCount = navData.categories[catIndex].links.length;
+                    insertIndex = Math.max(0, Math.min(linksCount - 1, insertIndex));
+                    targetIndex = insertIndex;
+
+                    if (insertIndex !== sourceLinkIndex) {
+                        const placeholderLink = allLinks[insertIndex];
+                        if (placeholderLink && placeholderLink !== sourceElement) {
+                            placeholderLink.classList.add('dragging--placeholder');
+                        }
+                    }
+                };
+
+                const onMouseUp = () => {
+                    mirrorElement.remove();
+                    sourceElement.classList.remove('dragging--original');
+                    allLinks.forEach(l => l.classList.remove('dragging--placeholder'));
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    if (targetIndex !== sourceLinkIndex) {
+                        const moved = navData.categories[catIndex].links.splice(sourceLinkIndex, 1)[0];
+                        navData.categories[catIndex].links.splice(targetIndex, 0, moved);
+                        renderSettings();
+                    }
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
+    // 添加新分类
+    function addNewCategory() {
+        navData.categories.push({
+            name: '新分类',
+            links: []
+        });
+        renderSettings();
+    }
+
+    // 保存设置
+    saveBtn.addEventListener('click', async function() {
+        document.getElementById('successMsg').style.display = 'none';
+        document.getElementById('errorMsg').style.display = 'none';
+
+        try {
+            const response = await fetch('/api/nav/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(navData)
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('successMsg').textContent = '导航设置已保存！';
+                document.getElementById('successMsg').style.display = 'block';
+            } else {
+                document.getElementById('errorMsg').textContent = '保存失败: ' + (result.error || '未知错误');
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        } catch (error) {
+            document.getElementById('errorMsg').textContent = '保存失败，请检查网络';
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    });
+
+    // 初始化加载
+    loadNavData();
+})();
+</script>
+{% endblock %}

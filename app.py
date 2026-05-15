@@ -8,14 +8,28 @@ from flask import Flask, render_template, abort, request, session, redirect, url
 app = Flask(__name__)
 app.secret_key = 'myblog-secret-key-2026'
 
-# 导航站访问密码
-NAV_PASSWORD = 'csj8928010'
+# 配置文件路径
+CONFIG_PATH = 'data/config.json'
 
-# 博客管理密码
-BLOG_PASSWORD = 'csj8928010'
+# 加载配置
+def load_config():
+    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
-# 解锁图案: 0-1-2-5-8 (L形)
-NAV_PATTERN = '01258'
+# 保存配置
+def save_config(config):
+    with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
+
+# 初始化配置（如果不存在）
+def init_config():
+    if not os.path.exists(CONFIG_PATH):
+        default_config = {
+            "nav_password": "csj8928010",
+            "nav_pattern": "01258",
+            "blog_password": "csj8928010"
+        }
+        save_config(default_config)
 
 # ----- 数据库初始化 -----
 DB_PATH = 'database.db'
@@ -118,7 +132,8 @@ def nav():
 @app.route('/nav/verify', methods=['POST'])
 def nav_verify():
     password = request.form.get('password', '')
-    if password == NAV_PASSWORD:
+    config = load_config()
+    if password == config.get('nav_password'):
         session['nav_authenticated'] = True
         return redirect(url_for('nav'))
     else:
@@ -126,9 +141,10 @@ def nav_verify():
 
 @app.route('/nav/verify-pattern', methods=['POST'])
 def nav_verify_pattern():
+    config = load_config()
     data = request.get_json()
     pattern = data.get('pattern', '')
-    if pattern == NAV_PATTERN:
+    if pattern == config.get('nav_pattern'):
         session['nav_authenticated'] = True
         return {'success': True}
     return {'success': False}
@@ -158,7 +174,8 @@ def write():
 @app.route('/blog/verify', methods=['POST'])
 def blog_verify():
     password = request.form.get('password', '')
-    if password == BLOG_PASSWORD:
+    config = load_config()
+    if password == config.get('blog_password'):
         session['blog_authenticated'] = True
         return redirect(url_for('write'))
     else:
@@ -283,8 +300,52 @@ def api_get_post_raw(slug):
 
     return {'title': title, 'content': body_content}
 
+# ----- 密码管理 -----
+@app.route('/settings')
+def settings():
+    # 设置入口页面，无需登录验证
+    return render_template('settings.html')
+
+@app.route('/settings/nav')
+def nav_settings():
+    if not session.get('nav_authenticated'):
+        return redirect(url_for('nav'))
+    return render_template('nav_settings.html')
+
+@app.route('/settings/password')
+def password_settings():
+    if not session.get('nav_authenticated') and not session.get('blog_authenticated'):
+        return redirect(url_for('settings'))
+    config = load_config()
+    return render_template('password_settings.html', config=config)
+
+@app.route('/api/config/update', methods=['POST'])
+def api_update_config():
+    if not session.get('nav_authenticated') and not session.get('blog_authenticated'):
+        return {'error': '未授权'}, 401
+
+    data = request.get_json()
+    nav_password = data.get('nav_password', '').strip()
+    nav_pattern = data.get('nav_pattern', '').strip()
+    blog_password = data.get('blog_password', '').strip()
+
+    if not nav_password or not blog_password:
+        return {'error': '密码不能为空'}, 400
+
+    config = load_config()
+    if nav_password:
+        config['nav_password'] = nav_password
+    if nav_pattern:
+        config['nav_pattern'] = nav_pattern
+    if blog_password:
+        config['blog_password'] = blog_password
+
+    save_config(config)
+    return {'success': True}
+
 # ----- 启动 -----
 if __name__ == '__main__':
+    init_config()
     init_db()
     scan_posts()
     app.run(host='0.0.0.0', port=5000, debug=True)
