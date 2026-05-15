@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Nav - 密码验证{% endblock %}
+
+{% block head %}
+<style>
+.pattern-lock {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    margin: 1.5rem auto;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+}
+
+.pattern-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 20px;
+    padding: 30px;
+    width: 100%;
+    height: 100%;
+}
+
+.pattern-dot {
+    width: 40px;
+    height: 40px;
+    background: var(--color-bg-tertiary);
+    border: 2px solid var(--color-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+    position: relative;
+}
+
+.pattern-dot::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background: var(--color-text-muted);
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.pattern-dot.active {
+    border-color: var(--color-accent);
+    background: var(--color-accent-subtle);
+}
+
+.pattern-dot.active::after {
+    background: var(--color-accent);
+    width: 20px;
+    height: 20px;
+}
+
+.pattern-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.pattern-hint {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.pattern-error {
+    color: #e57373;
+}
+
+.pattern-success {
+    color: #81c784;
+}
+
+.password-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border-subtle);
+}
+
+.password-section p {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <h1>Nav</h1>
+        <p class="login-subtitle">请绘制解锁图案</p>
+
+        <div class="pattern-lock">
+            <canvas class="pattern-canvas" id="patternCanvas"></canvas>
+            <div class="pattern-grid">
+                <div class="pattern-dot" data-index="0"></div>
+                <div class="pattern-dot" data-index="1"></div>
+                <div class="pattern-dot" data-index="2"></div>
+                <div class="pattern-dot" data-index="3"></div>
+                <div class="pattern-dot" data-index="4"></div>
+                <div class="pattern-dot" data-index="5"></div>
+                <div class="pattern-dot" data-index="6"></div>
+                <div class="pattern-dot" data-index="7"></div>
+                <div class="pattern-dot" data-index="8"></div>
+            </div>
+        </div>
+
+        <p class="pattern-hint" id="patternHint">连接至少4个点</p>
+
+        <div class="password-section">
+            <p>或使用密码进入</p>
+            <form action="/nav/verify" method="post" class="login-form">
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="输入密码">
+                </div>
+                {% if error %}
+                <p class="login-error">{{ error }}</p>
+                {% endif %}
+                <button type="submit" class="login-btn">进入</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('patternCanvas');
+    const ctx = canvas.getContext('2d');
+    const dots = document.querySelectorAll('.pattern-dot');
+    const hint = document.getElementById('patternHint');
+
+    // 设置canvas尺寸
+    function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    }
+    resizeCanvas();
+
+    let pattern = [];
+    let isDrawing = false;
+
+    // 正确的解锁图案: 0-1-2-5-8 (L形)
+    const correctPattern = '01258';
+
+    // 获取点的中心坐标
+    function getDotCenter(dot) {
+        const rect = dot.getBoundingClientRect();
+        const containerRect = canvas.parentElement.getBoundingClientRect();
+        return {
+            x: rect.left - containerRect.left + rect.width / 2,
+            y: rect.top - containerRect.top + rect.height / 2
+        };
+    }
+
+    // 绘制连线
+    function drawLines() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (pattern.length < 1) return;
+
+        ctx.strokeStyle = '#d4a574';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        const firstDot = dots[pattern[0]];
+        const firstCenter = getDotCenter(firstDot);
+        ctx.moveTo(firstCenter.x, firstCenter.y);
+
+        for (let i = 1; i < pattern.length; i++) {
+            const dot = dots[pattern[i]];
+            const center = getDotCenter(dot);
+            ctx.lineTo(center.x, center.y);
+        }
+        ctx.stroke();
+    }
+
+    // 检查点是否被触碰
+    function checkDot(x, y) {
+        for (let i = 0; i < dots.length; i++) {
+            if (pattern.includes(i)) continue;
+            const center = getDotCenter(dots[i]);
+            const distance = Math.sqrt(Math.pow(x - center.x, 2) + Math.pow(y - center.y, 2));
+            if (distance < 25) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // 添加点到图案
+    function addDot(index) {
+        if (pattern.includes(index)) return;
+        pattern.push(index);
+        dots[index].classList.add('active');
+        drawLines();
+    }
+
+    // 重置图案
+    function resetPattern() {
+        pattern = [];
+        dots.forEach(dot => dot.classList.remove('active'));
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        hint.textContent = '连接至少4个点';
+        hint.classList.remove('pattern-error', 'pattern-success');
+    }
+
+    // 验证图案
+    function verifyPattern() {
+        if (pattern.length < 4) {
+            hint.textContent = '请连接至少4个点';
+            hint.classList.add('pattern-error');
+            setTimeout(resetPattern, 1000);
+            return;
+        }
+
+        const inputPattern = pattern.join('');
+        if (inputPattern === correctPattern) {
+            hint.textContent = '解锁成功!';
+            hint.classList.add('pattern-success');
+            // 发送验证请求
+            fetch('/nav/verify-pattern', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pattern: inputPattern})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/nav';
+                }
+            });
+        } else {
+            hint.textContent = '图案错误，请重试';
+            hint.classList.add('pattern-error');
+            setTimeout(resetPattern, 1000);
+        }
+    }
+
+    // 触摸/鼠标事件
+    function getEventPos(e) {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        if (e.touches) {
+            return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+            };
+        }
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    function startDraw(e) {
+        e.preventDefault();
+        isDrawing = true;
+        resetPattern();
+        const pos = getEventPos(e);
+        const index = checkDot(pos.x, pos.y);
+        if (index >= 0) addDot(index);
+    }
+
+    function moveDraw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getEventPos(e);
+        const index = checkDot(pos.x, pos.y);
+        if (index >= 0) addDot(index);
+    }
+
+    function endDraw(e) {
+        if (!isDrawing) return;
+        isDrawing = false;
+        verifyPattern();
+    }
+
+    // 绑定事件
+    canvas.parentElement.addEventListener('mousedown', startDraw);
+    canvas.parentElement.addEventListener('mousemove', moveDraw);
+    canvas.parentElement.addEventListener('mouseup', endDraw);
+    canvas.parentElement.addEventListener('mouseleave', endDraw);
+
+    canvas.parentElement.addEventListener('touchstart', startDraw);
+    canvas.parentElement.addEventListener('touchmove', moveDraw);
+    canvas.parentElement.addEventListener('touchend', endDraw);
+})();
+</script>
+{% endblock %}

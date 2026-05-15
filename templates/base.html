@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="个人技术博客 - 分享编程心得与技术探索">
+    <title>{% block title %}清晨点支烟{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-left">
+            <a class="header-logo" href="/">清晨点支烟</a>
+            <nav class="header-nav">
+                <a class="nav-link" href="/nav">Nav</a>
+                <a class="nav-link" href="/blog">Blog</a>
+            </nav>
+        </div>
+        <button class="menu-toggle" id="menuToggle" aria-label="打开菜单">
+            <span class="menu-icon">
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+            </span>
+            <span class="menu-text">MENU</span>
+        </button>
+    </header>
+
+    <!-- Fullscreen Menu -->
+    <div class="fullscreen-menu" id="fullscreenMenu">
+        <div class="menu-content">
+            <nav class="menu-nav">
+                <a class="menu-link" href="/">Home</a>
+                <a class="menu-link" href="/nav">Nav</a>
+                <a class="menu-link" href="/blog">Blog</a>
+            </nav>
+            <div class="menu-footer">
+                <p class="menu-copyright">© 2026 清晨点支烟</p>
+            </div>
+        </div>
+        <button class="menu-close" id="menuClose" aria-label="关闭菜单">
+            <span class="close-icon">×</span>
+        </button>
+    </div>
+
+    <main class="content-wrapper">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <p>© 2026 清晨点支烟 · 以文字记录思考</p>
+    </footer>
+
+    <script>
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('fullscreenMenu').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    document.getElementById('menuClose').addEventListener('click', function() {
+        document.getElementById('fullscreenMenu').classList.remove('active');
+        document.body.style.overflow = '';
+    });
+
+    document.getElementById('fullscreenMenu').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

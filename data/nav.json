@@ -1,0 +1,109 @@
+{
+  "categories": [
+    {
+      "links": [
+        {
+          "description": "集群后台日志查看",
+          "name": "后台日志",
+          "url": "http://prdmaster02:8088/cluster"
+        },
+        {
+          "description": "数据资产字典",
+          "name": "数据地图",
+          "url": "https://data.lbxcn.com/html/platform-main/#/data-assets/dict"
+        },
+        {
+          "description": "数据任务开发平台",
+          "name": "任务开发",
+          "url": "https://data.lbxcn.com/html/platform-main/#/data-task/develop"
+        },
+        {
+          "description": "Ad-hoc 即席查询",
+          "name": "即席查询",
+          "url": "https://data.lbxcn.com/html/platform-main/#/ad-hoc"
+        }
+      ],
+      "name": "LBX 内部"
+    },
+    {
+      "links": [
+        {
+          "description": "代码托管平台",
+          "name": "GitHub",
+          "url": "https://github.com"
+        },
+        {
+          "description": "程序员问答社区",
+          "name": "Stack Overflow",
+          "url": "https://stackoverflow.com"
+        },
+        {
+          "description": "搜索引擎",
+          "name": "Google",
+          "url": "https://google.com"
+        }
+      ],
+      "name": "常用工具"
+    },
+    {
+      "links": [
+        {
+          "description": "DeepSeek AI 对话助手",
+          "name": "DeepSeek",
+          "url": "https://chat.deepseek.com/"
+        },
+        {
+          "description": "Google Gemini AI 助手",
+          "name": "Gemini",
+          "url": "https://gemini.google.com/app"
+        }
+      ],
+      "name": "AI 助手"
+    },
+    {
+      "links": [
+        {
+          "description": "JSON 格式化校验工具",
+          "name": "JSON.cn",
+          "url": "https://www.json.cn/"
+        },
+        {
+          "description": "Base64 编码解码工具",
+          "name": "Base64.us",
+          "url": "https://base64.us/"
+        }
+      ],
+      "name": "开发工具"
+    },
+    {
+      "links": [
+        {
+          "description": "Python 语言文档",
+          "name": "Python 官方文档",
+          "url": "https://docs.python.org"
+        },
+        {
+          "description": "Flask 框架文档",
+          "name": "Flask 文档",
+          "url": "https://flask.palletsprojects.com"
+        }
+      ],
+      "name": "开发文档"
+    },
+    {
+      "links": [
+        {
+          "description": "Web 开发文档",
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org"
+        },
+        {
+          "description": "算法练习平台",
+          "name": "LeetCode",
+          "url": "https://leetcode.com"
+        }
+      ],
+      "name": "学习资源"
+    }
+  ]
+}

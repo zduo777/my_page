@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}清晨点支烟{% endblock %}
+
+{% block head %}
+<style>
+.content-wrapper {
+    min-height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.home-wrapper {
+    text-align: center;
+    padding: 2rem;
+}
+
+.daily-quote {
+    max-width: 600px;
+}
+
+.quote-label {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+.quote-content {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
+    animation: fadeIn 1s ease;
+}
+
+.quote-author {
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.quote-source {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.quote-decoration {
+    margin: 2rem 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+}
+
+.quote-loading {
+    color: var(--color-text-muted);
+    font-size: 1.2rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-wrapper">
+    <div class="daily-quote">
+        <div class="quote-label">每日一句</div>
+        <div class="quote-decoration"></div>
+        <p class="quote-content" id="quoteContent">
+            <span class="quote-loading">正在加载...</span>
+        </p>
+        <p class="quote-author" id="quoteAuthor"></p>
+        <p class="quote-source" id="quoteSource"></p>
+    </div>
+</div>
+
+<script>
+fetch('https://v2.jinrishici.com/sentence')
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('quoteContent').textContent = data.data.content;
+        document.getElementById('quoteAuthor').textContent = '—— ' + (data.data.origin.author || '佚名');
+        document.getElementById('quoteSource').textContent = '《' + data.data.origin.title + '》';
+    })
+    .catch(err => {
+        document.getElementById('quoteContent').textContent = '山高月小，水落石出';
+        document.getElementById('quoteAuthor').textContent = '—— 苏轼';
+        document.getElementById('quoteSource').textContent = '《后赤壁赋》';
+    });
+</script>
+{% endblock %}

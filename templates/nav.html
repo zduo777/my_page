@@ -1,0 +1,1219 @@
+{% extends "base.html" %}
+
+{% block title %}Nav - 清晨点支烟{% endblock %}
+
+{% block head %}
+<style>
+/* 覆盖 container 的宽度限制 */
+.content-wrapper > .container {
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+.content-wrapper {
+    padding: 3rem 2rem;
+    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.nav-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    flex-shrink: 0;
+}
+
+.page-header h1 {
+    font-family: var(--font-body);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+}
+
+/* 卡片滑动容器 */
+.card-slider-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-slider {
+    display: flex;
+    transition: transform 0.5s ease;
+    height: 100%;
+}
+
+.card-page {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    width: 100%;
+    height: 100%;
+    flex-shrink: 0;
+    padding: 1rem 2rem 0 2rem;
+}
+
+.nav-category-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all var(--transition-medium);
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-category-card:hover {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+}
+
+.nav-category-header {
+    background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-tertiary) 100%);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border-subtle);
+    flex-shrink: 0;
+}
+
+.nav-category-header h3 {
+    font-family: var(--font-body);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.nav-link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.nav-link-item {
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.nav-link-item:last-child {
+    border-bottom: none;
+}
+
+.nav-link-item a {
+    display: block;
+    padding: 1.25rem 1.5rem;
+    transition: all var(--transition-fast);
+}
+
+.nav-link-item:hover {
+    background: var(--color-bg-card-hover);
+}
+
+.nav-link-item:hover a {
+    color: var(--color-accent);
+}
+
+.link-name {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.link-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+}
+
+/* 分页指示器 */
+.pagination-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 0;
+    flex-shrink: 0;
+}
+
+.pagination-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-border);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination-dot.active {
+    background: var(--color-accent);
+    transform: scale(1.2);
+}
+
+.pagination-dot:hover {
+    background: var(--color-text-muted);
+}
+
+@media (max-width: 1000px) {
+    .card-page {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .card-page {
+        grid-template-columns: 1fr;
+    }
+
+    .content-wrapper {
+        height: auto;
+        overflow: visible;
+    }
+
+    .card-slider-wrapper {
+        overflow: visible;
+    }
+
+    .card-slider {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .card-page {
+        height: auto;
+        padding: 0;
+    }
+
+    .pagination-indicator,
+    .scroll-hint {
+        display: none;
+    }
+
+    .settings-trigger {
+        display: none;
+    }
+}
+
+/* 设置按钮触发区域 */
+.settings-trigger {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    z-index: 100;
+}
+
+.settings-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all var(--transition-medium);
+    z-index: 99;
+}
+
+.settings-trigger:hover .settings-btn {
+    opacity: 1;
+}
+
+.settings-btn:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent);
+}
+
+.settings-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--color-text-secondary);
+    transition: fill var(--transition-fast);
+}
+
+.settings-btn:hover svg {
+    fill: var(--color-accent);
+}
+
+/* 设置面板模态框 */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal.active {
+    display: flex;
+}
+
+.settings-panel {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.settings-header h2 {
+    font-size: 1.2rem;
+    color: var(--color-text-primary);
+}
+
+.settings-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary);
+    font-size: 1.2rem;
+    transition: all var(--transition-fast);
+}
+
+.settings-close:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-accent);
+}
+
+.settings-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* 分类总览区域 */
+.category-overview {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.category-overview-title {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 40px;
+}
+
+.category-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    cursor: grab;
+    user-select: none;
+}
+
+.category-tag:hover {
+    border-color: var(--color-accent);
+}
+
+/* 拖拽中的原始元素 - 虚化 */
+.category-tag.dragging--original {
+    opacity: 0.2;
+}
+
+/* 跟随鼠标的 mirror 元素 */
+.category-tag.dragging--mirror {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.95;
+    transform: scale(1.05);
+    border-color: var(--color-accent);
+    box-shadow: 0 12px 28px rgba(212, 165, 116, 0.35), 0 4px 10px rgba(0,0,0,0.25);
+    background: var(--color-bg-card-hover);
+    cursor: grabbing;
+    transition: none;
+}
+
+/* 占位符 placeholder - 显示目标位置 */
+.category-tag.dragging--placeholder {
+    opacity: 0.4;
+    background: rgba(212, 165, 116, 0.2);
+    border-color: var(--color-accent);
+    border-style: dashed;
+}
+
+.category-tag .tag-name {
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+}
+
+.category-tag .tag-count {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+}
+
+/* 分类卡片设置项 */
+.settings-category {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-category:hover {
+    border-color: var(--color-border);
+}
+
+.settings-category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.category-name-input {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    color: var(--color-text-primary);
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.category-name-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.delete-category-btn {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid #e57373;
+    border-radius: var(--radius-sm);
+    color: #e57373;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.delete-category-btn:hover {
+    background: rgba(229, 115, 115, 0.1);
+}
+
+/* 链接设置项 */
+.settings-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-link-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+}
+
+.link-drag-handle {
+    cursor: grab;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    padding: 0.25rem;
+}
+
+.link-drag-handle:hover {
+    color: var(--color-accent);
+}
+
+/* 拖拽中的原始元素 - 虚化 */
+.settings-link-item.dragging--original {
+    opacity: 0.2;
+}
+
+/* 跟随鼠标的 mirror 元素 */
+.settings-link-item.dragging--mirror {
+    position: fixed;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.95;
+    transform: scale(1.02);
+    border-color: var(--color-accent);
+    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.3), 0 2px 8px rgba(0,0,0,0.2);
+    background: var(--color-bg-tertiary);
+    cursor: grabbing;
+    transition: none;
+}
+
+/* 占位符 placeholder */
+.settings-link-item.dragging--placeholder {
+    opacity: 0.4;
+    background: rgba(212, 165, 116, 0.2);
+    border-color: var(--color-accent);
+    border-style: dashed;
+}
+
+.link-input {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.6rem;
+    color: var(--color-text-primary);
+    font-size: 0.85rem;
+}
+
+.link-input.name-input {
+    width: 120px;
+}
+
+.link-input.url-input {
+    width: 180px;
+}
+
+.link-input.desc-input {
+    flex: 1;
+}
+
+.link-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.delete-link-btn {
+    padding: 0.3rem 0.6rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.delete-link-btn:hover {
+    color: #e57373;
+    border-color: #e57373;
+}
+
+.add-link-btn {
+    padding: 0.5rem 1rem;
+    background: var(--color-accent-subtle);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    margin-top: 0.5rem;
+}
+
+.add-link-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-bg-primary);
+}
+
+.add-category-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+}
+
+.add-category-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.settings-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.settings-cancel-btn,
+.settings-save-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.settings-cancel-btn {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.settings-cancel-btn:hover {
+    background: var(--color-bg-tertiary);
+}
+
+.settings-save-btn {
+    background: var(--color-accent);
+    border: none;
+    color: var(--color-bg-primary);
+}
+
+.settings-save-btn:hover {
+    background: var(--color-accent-hover);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="nav-page">
+    <header class="page-header">
+        <h1>Nav</h1>
+        <p class="page-subtitle">精选工具与资源</p>
+    </header>
+
+    <div class="card-slider-wrapper">
+        <div class="card-slider" id="cardSlider">
+            {% for category in links.categories %}
+            {% if loop.index0 % 3 == 0 %}
+            <div class="card-page">
+            {% endif %}
+                <div class="nav-category-card">
+                    <div class="nav-category-header">
+                        <h3>{{ category.name }}</h3>
+                    </div>
+                    <ul class="nav-link-list">
+                        {% for link in category.links %}
+                        <li class="nav-link-item">
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                                <div class="link-name">{{ link.name }}</div>
+                                <div class="link-desc">{{ link.description }}</div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% if loop.index0 % 3 == 2 or loop.last %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="pagination-indicator" id="paginationIndicator"></div>
+
+    <!-- 设置触发区域和按钮 -->
+    <div class="settings-trigger">
+        <button class="settings-btn" id="settingsBtn" aria-label="打开设置">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.26-1.77c.2-.16.25-.46.12-.7l-2-3.46c-.13-.24-.43-.32-.66-.2l-2.6 1.1a7.4 7.4 0 0 0-1.55-.85l-.4-2.76c-.03-.26-.26-.46-.53-.46h-4c-.27 0-.5.2-.53.46l-.4 2.76c-.56.22-1.08.51-1.55.85l-2.6-1.1c-.23-.12-.53-.04-.66.2l-2 3.46c-.13.24-.08.54.12.7L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.26 1.77c-.2.16-.25.46-.12.7l2 3.46c.13.24.43.32.66.2l2.6-1.1c.47.34.99.63 1.55.85l.4 2.76c.03.26.26.46.53.46h4c.27 0 .5-.2.53-.46l.4-2.76c.56-.22 1.08-.51 1.55-.85l2.6 1.1c.23.12.53.04.66-.2l2-3.46c.13-.24.08-.54-.12-.7l-2.26-1.77Z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- 设置面板模态框 -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-panel">
+            <div class="settings-header">
+                <h2>设置导航</h2>
+                <button class="settings-close" id="settingsClose">×</button>
+            </div>
+            <div class="settings-body" id="settingsBody">
+                <!-- 动态填充 -->
+            </div>
+            <div class="settings-footer">
+                <button class="settings-cancel-btn" id="settingsCancel">取消</button>
+                <button class="settings-save-btn" id="settingsSave">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const slider = document.getElementById('cardSlider');
+    const indicator = document.getElementById('paginationIndicator');
+    const pages = slider.querySelectorAll('.card-page');
+    const totalPages = pages.length;
+    let currentPage = 0;
+    let isAnimating = false;
+
+    // 创建分页指示器
+    for (let i = 0; i < totalPages; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'pagination-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToPage(i));
+        indicator.appendChild(dot);
+    }
+
+    function goToPage(pageIndex) {
+        if (isAnimating || pageIndex === currentPage) return;
+        isAnimating = true;
+
+        currentPage = pageIndex;
+        slider.style.transform = `translateX(-${pageIndex * 100}%)`;
+
+        // 更新指示器
+        const dots = indicator.querySelectorAll('.pagination-dot');
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === pageIndex);
+        });
+
+        setTimeout(() => isAnimating = false, 500);
+    }
+
+    // 滚轮切换页面
+    let wheelTimeout;
+    slider.addEventListener('wheel', function(e) {
+        e.preventDefault();
+
+        clearTimeout(wheelTimeout);
+        wheelTimeout = setTimeout(() => {
+            if (e.deltaY > 0 && currentPage < totalPages - 1) {
+                goToPage(currentPage + 1);
+            } else if (e.deltaY < 0 && currentPage > 0) {
+                goToPage(currentPage - 1);
+            }
+        }, 50);
+    }, { passive: false });
+
+    // 键盘切换
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            if (currentPage < totalPages - 1) goToPage(currentPage + 1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            if (currentPage > 0) goToPage(currentPage - 1);
+        }
+    });
+
+    // 触摸滑动支持
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    slider.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    slider.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0 && currentPage < totalPages - 1) {
+                goToPage(currentPage + 1);
+            } else if (diff < 0 && currentPage > 0) {
+                goToPage(currentPage - 1);
+            }
+        }
+    }
+})();
+
+// 设置面板功能
+(function() {
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsClose = document.getElementById('settingsClose');
+    const settingsCancel = document.getElementById('settingsCancel');
+    const settingsSave = document.getElementById('settingsSave');
+    const settingsBody = document.getElementById('settingsBody');
+
+    let navData = null;
+
+    // 打开设置面板
+    settingsBtn.addEventListener('click', async function() {
+        settingsModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        await loadNavData();
+    });
+
+    // 关闭设置面板
+    function closeSettings() {
+        settingsModal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    settingsClose.addEventListener('click', closeSettings);
+    settingsCancel.addEventListener('click', closeSettings);
+    settingsModal.addEventListener('click', function(e) {
+        if (e.target === settingsModal) closeSettings();
+    });
+
+    // 加载导航数据
+    async function loadNavData() {
+        try {
+            const response = await fetch('/api/nav');
+            navData = await response.json();
+            renderSettings();
+        } catch (error) {
+            console.error('加载失败:', error);
+        }
+    }
+
+    // 渲染设置面板
+    function renderSettings() {
+        settingsBody.innerHTML = '';
+
+        // 分类总览区域
+        const overviewSection = document.createElement('div');
+        overviewSection.className = 'category-overview';
+        overviewSection.innerHTML = `
+            <div class="category-overview-title">分类总览（拖拽调整顺序）</div>
+            <div class="category-tags" id="categoryTags"></div>
+        `;
+        settingsBody.appendChild(overviewSection);
+
+        const categoryTags = overviewSection.querySelector('#categoryTags');
+
+        // 渲染分类标签
+        navData.categories.forEach((category, catIndex) => {
+            const tag = document.createElement('div');
+            tag.className = 'category-tag';
+            tag.dataset.index = catIndex;
+            tag.innerHTML = `
+                <span class="tag-name">${category.name}</span>
+                <span class="tag-count">${category.links.length}</span>
+            `;
+            categoryTags.appendChild(tag);
+        });
+
+        // 分类标签拖拽
+        setupTagDrag(categoryTags);
+
+        // 详细编辑区域
+        navData.categories.forEach((category, catIndex) => {
+            const categoryEl = document.createElement('div');
+            categoryEl.className = 'settings-category';
+            categoryEl.dataset.catIndex = catIndex;
+
+            categoryEl.innerHTML = `
+                <div class="settings-category-header">
+                    <input type="text" class="category-name-input" value="${category.name}" data-cat-index="${catIndex}">
+                    <button class="delete-category-btn" data-cat-index="${catIndex}">删除分类</button>
+                </div>
+                <div class="settings-links" data-cat-index="${catIndex}">
+                    ${category.links.map((link, linkIndex) => `
+                        <div class="settings-link-item" data-cat-index="${catIndex}" data-link-index="${linkIndex}">
+                            <span class="link-drag-handle">⋮⋮</span>
+                            <input type="text" class="link-input name-input" value="${link.name}" placeholder="名称">
+                            <input type="text" class="link-input url-input" value="${link.url}" placeholder="URL">
+                            <input type="text" class="link-input desc-input" value="${link.description}" placeholder="描述">
+                            <button class="delete-link-btn">删除</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="add-link-btn" data-cat-index="${catIndex}">+ 添加链接</button>
+            `;
+
+            settingsBody.appendChild(categoryEl);
+        });
+
+        // 添加分类按钮
+        const addCategoryBtn = document.createElement('button');
+        addCategoryBtn.className = 'add-category-btn';
+        addCategoryBtn.textContent = '+ 添加新分类';
+        addCategoryBtn.addEventListener('click', addNewCategory);
+        settingsBody.appendChild(addCategoryBtn);
+
+        // 绑定详细编辑事件
+        bindDetailEvents();
+    }
+
+    // 分类标签拖拽设置 - 参考 Shopify/draggable 设计
+    function setupTagDrag(container) {
+        const tags = container.querySelectorAll('.category-tag');
+
+        tags.forEach(tag => {
+            tag.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+
+                const sourceElement = this;
+                const sourceRect = this.getBoundingClientRect();
+                const sourceIndex = parseInt(this.dataset.index);
+                const offsetX = e.clientX - sourceRect.left;
+                const offsetY = e.clientY - sourceRect.top;
+
+                // 1. 创建 mirror 元素（跟随鼠标）
+                const mirrorElement = this.cloneNode(true);
+                mirrorElement.classList.add('dragging--mirror');
+                mirrorElement.style.cssText = `
+                    width: ${sourceRect.width}px;
+                    height: ${sourceRect.height}px;
+                    left: ${sourceRect.left}px;
+                    top: ${sourceRect.top}px;
+                `;
+                document.body.appendChild(mirrorElement);
+
+                // 2. 原元素变虚化
+                sourceElement.classList.add('dragging--original');
+
+                // 3. 记录所有标签位置
+                const allTags = Array.from(container.querySelectorAll('.category-tag'));
+                const tagRects = allTags.map(t => t.getBoundingClientRect());
+                let targetIndex = sourceIndex;
+
+                // 鼠标移动处理
+                const onMouseMove = (e) => {
+                    // mirror 跟随鼠标
+                    mirrorElement.style.left = `${e.clientX - offsetX}px`;
+                    mirrorElement.style.top = `${e.clientY - offsetY}px`;
+
+                    // 根据鼠标X位置计算目标索引
+                    const mouseX = e.clientX;
+
+                    // 清除旧的 placeholder
+                    allTags.forEach(t => t.classList.remove('dragging--placeholder'));
+
+                    // 遍历所有标签，找到插入位置
+                    let newTargetIndex = sourceIndex;
+                    for (let i = 0; i < allTags.length; i++) {
+                        if (allTags[i] === sourceElement) continue;
+
+                        const rect = tagRects[i];
+                        const centerX = rect.left + rect.width / 2;
+
+                        if (mouseX < centerX) {
+                            // 鼠标在标签左边，插入到这个标签之前
+                            newTargetIndex = i;
+                            break;
+                        } else if (mouseX >= centerX && mouseX <= rect.right) {
+                            // 鼠标在标签内，根据位置决定插入到左边还是右边
+                            if (mouseX < centerX) {
+                                newTargetIndex = i;
+                            } else {
+                                newTargetIndex = i + 1;
+                            }
+                            break;
+                        }
+                    }
+
+                    // 如果鼠标在所有标签右边，放到最后
+                    if (mouseX > tagRects[allTags.length - 1].right) {
+                        newTargetIndex = allTags.length;
+                    }
+
+                    // 修正索引：如果源元素在目标位置左边，目标索引需要减1
+                    let insertIndex = newTargetIndex;
+                    if (sourceIndex < newTargetIndex) {
+                        insertIndex = newTargetIndex - 1;
+                    }
+
+                    // 确保索引有效
+                    insertIndex = Math.max(0, Math.min(navData.categories.length - 1, insertIndex));
+                    targetIndex = insertIndex;
+
+                    // 显示 placeholder 在目标位置
+                    if (insertIndex !== sourceIndex) {
+                        const placeholderTag = allTags[insertIndex];
+                        if (placeholderTag && placeholderTag !== sourceElement) {
+                            placeholderTag.classList.add('dragging--placeholder');
+                        }
+                    }
+                };
+
+                // 鼠标释放处理
+                const onMouseUp = () => {
+                    // 移除 mirror
+                    mirrorElement.remove();
+
+                    // 恢复原元素状态
+                    sourceElement.classList.remove('dragging--original');
+                    allTags.forEach(t => t.classList.remove('dragging--placeholder'));
+
+                    // 移除事件监听
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    // 执行排序
+                    if (targetIndex !== sourceIndex) {
+                        const moved = navData.categories.splice(sourceIndex, 1)[0];
+                        navData.categories.splice(targetIndex, 0, moved);
+                        renderSettings();
+                    }
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
+    // 绑定详细编辑事件
+    function bindDetailEvents() {
+        // 分类名称修改
+        settingsBody.querySelectorAll('.category-name-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories[catIndex].name = this.value;
+                // 更新总览区域的标签名称
+                const tag = settingsBody.querySelector(`.category-tag[data-index="${catIndex}"] .tag-name`);
+                if (tag) tag.textContent = this.value;
+            });
+        });
+
+        // 删除分类
+        settingsBody.querySelectorAll('.delete-category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories.splice(catIndex, 1);
+                renderSettings();
+            });
+        });
+
+        // 链接拖拽
+        setupLinkDrag();
+
+        // 链接输入修改
+        settingsBody.querySelectorAll('.settings-link-item').forEach(item => {
+            const catIndex = parseInt(item.dataset.catIndex);
+            const linkIndex = parseInt(item.dataset.linkIndex);
+
+            item.querySelectorAll('.link-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const field = this.classList.contains('name-input') ? 'name' :
+                                  this.classList.contains('url-input') ? 'url' : 'description';
+                    navData.categories[catIndex].links[linkIndex][field] = this.value;
+                });
+            });
+
+            item.querySelector('.delete-link-btn').addEventListener('click', function() {
+                navData.categories[catIndex].links.splice(linkIndex, 1);
+                renderSettings();
+            });
+        });
+
+        // 添加链接
+        settingsBody.querySelectorAll('.add-link-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const catIndex = parseInt(this.dataset.catIndex);
+                navData.categories[catIndex].links.push({
+                    name: '新链接',
+                    url: 'https://',
+                    description: '描述'
+                });
+                renderSettings();
+            });
+        });
+    }
+
+    // 链接拖拽设置 - 参考 Shopify/draggable 设计
+    function setupLinkDrag() {
+        const handles = settingsBody.querySelectorAll('.link-drag-handle');
+
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+
+                const sourceElement = this.closest('.settings-link-item');
+                const sourceRect = sourceElement.getBoundingClientRect();
+                const catIndex = parseInt(sourceElement.dataset.catIndex);
+                const sourceLinkIndex = parseInt(sourceElement.dataset.linkIndex);
+                const offsetX = e.clientX - sourceRect.left;
+                const offsetY = e.clientY - sourceRect.top;
+
+                // 1. 创建 mirror 元素（跟随鼠标）
+                const mirrorElement = sourceElement.cloneNode(true);
+                mirrorElement.classList.add('dragging--mirror');
+                mirrorElement.style.cssText = `
+                    width: ${sourceRect.width}px;
+                    height: ${sourceRect.height}px;
+                    left: ${sourceRect.left}px;
+                    top: ${sourceRect.top}px;
+                `;
+                document.body.appendChild(mirrorElement);
+
+                // 2. 原元素变虚化
+                sourceElement.classList.add('dragging--original');
+
+                // 3. 获取同分类内的所有链接
+                const linksContainer = sourceElement.closest('.settings-links');
+                const allLinks = Array.from(linksContainer.querySelectorAll('.settings-link-item'));
+                const linkRects = allLinks.map(l => l.getBoundingClientRect());
+                let targetIndex = sourceLinkIndex;
+
+                // 鼠标移动处理
+                const onMouseMove = (e) => {
+                    // mirror 跟随鼠标
+                    mirrorElement.style.left = `${e.clientX - offsetX}px`;
+                    mirrorElement.style.top = `${e.clientY - offsetY}px`;
+
+                    // 根据鼠标Y位置计算目标索引
+                    const mouseY = e.clientY;
+
+                    // 清除旧的 placeholder
+                    allLinks.forEach(l => l.classList.remove('dragging--placeholder'));
+
+                    // 遍历所有链接，找到插入位置
+                    let newTargetIndex = sourceLinkIndex;
+                    for (let i = 0; i < allLinks.length; i++) {
+                        if (allLinks[i] === sourceElement) continue;
+
+                        const rect = linkRects[i];
+                        const centerY = rect.top + rect.height / 2;
+
+                        if (mouseY < centerY) {
+                            // 鼠标在链接上方，插入到这个链接之前
+                            newTargetIndex = i;
+                            break;
+                        } else if (mouseY >= centerY && mouseY <= rect.bottom) {
+                            // 鼠标在链接内，根据位置决定插入到上方还是下方
+                            if (mouseY < centerY) {
+                                newTargetIndex = i;
+                            } else {
+                                newTargetIndex = i + 1;
+                            }
+                            break;
+                        }
+                    }
+
+                    // 如果鼠标在所有链接下方，放到最后
+                    if (mouseY > linkRects[allLinks.length - 1].bottom) {
+                        newTargetIndex = allLinks.length;
+                    }
+
+                    // 修正索引：如果源元素在目标位置上方，目标索引需要减1
+                    let insertIndex = newTargetIndex;
+                    if (sourceLinkIndex < newTargetIndex) {
+                        insertIndex = newTargetIndex - 1;
+                    }
+
+                    // 确保索引有效
+                    const linksCount = navData.categories[catIndex].links.length;
+                    insertIndex = Math.max(0, Math.min(linksCount - 1, insertIndex));
+                    targetIndex = insertIndex;
+
+                    // 显示 placeholder 在目标位置
+                    if (insertIndex !== sourceLinkIndex) {
+                        const placeholderLink = allLinks[insertIndex];
+                        if (placeholderLink && placeholderLink !== sourceElement) {
+                            placeholderLink.classList.add('dragging--placeholder');
+                        }
+                    }
+                };
+
+                // 鼠标释放处理
+                const onMouseUp = () => {
+                    // 移除 mirror
+                    mirrorElement.remove();
+
+                    // 恢复原元素状态
+                    sourceElement.classList.remove('dragging--original');
+                    allLinks.forEach(l => l.classList.remove('dragging--placeholder'));
+
+                    // 移除事件监听
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+
+                    // 执行排序
+                    if (targetIndex !== sourceLinkIndex) {
+                        const moved = navData.categories[catIndex].links.splice(sourceLinkIndex, 1)[0];
+                        navData.categories[catIndex].links.splice(targetIndex, 0, moved);
+                        renderSettings();
+                    }
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+
+    // 添加新分类
+    function addNewCategory() {
+        navData.categories.push({
+            name: '新分类',
+            links: []
+        });
+        renderSettings();
+    }
+
+    // 保存设置
+    settingsSave.addEventListener('click', async function() {
+        try {
+            const response = await fetch('/api/nav/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(navData)
+            });
+            const result = await response.json();
+            if (result.success) {
+                closeSettings();
+                window.location.reload();
+            } else {
+                alert('保存失败: ' + (result.error || '未知错误'));
+            }
+        } catch (error) {
+            alert('保存失败，请检查网络连接');
+        }
+    });
+})();
+</script>
+{% endblock %}

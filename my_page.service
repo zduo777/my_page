@@ -1,0 +1,14 @@
+[Unit]
+Description=MyPage Flask Application
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/var/www/my_page
+Environment="PATH=/var/www/my_page/venv/bin"
+ExecStart=/var/www/my_page/venv/bin/gunicorn -c gunicorn.conf.py app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
