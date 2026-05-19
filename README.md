@@ -54,17 +54,23 @@ python app.py
 # 访问 http://127.0.0.1:5000
 ```
 
-### 默认密码
+### 密码配置
 
-| 功能 | 密码 |
-|------|------|
-| 导航站文字密码 | `csj8928010` |
-| 导航站滑动密码 | `01258` |
-| 博客管理密码 | `csj8928010` |
+首次使用时，需要在 `data/config.json` 中配置密码：
 
-## 功能说明
+```json
+{ 
+    "nav_password": "your_password_here",
+    "nav_pattern": "your_pattern_here", 
+    "blog_password": "your_password_here" 
+}
+```
 
-### 博客系统
+| 配置项 | 说明 |
+|--------|------|
+| `nav_password` | 导航站文字密码 |
+| `nav_pattern` | 导航站滑动密码（九宫格数字序列） |
+| `blog_password` | 博客管理密码 |
 
 1. **查看博客** - `/blog` 查看所有文章列表
 2. **写博客** - `/write` 登录后在线写作，支持 Markdown

@@ -25,9 +25,9 @@ def save_config(config):
 def init_config():
     if not os.path.exists(CONFIG_PATH):
         default_config = {
-            "nav_password": "csj8928010",
-            "nav_pattern": "01258",
-            "blog_password": "csj8928010"
+            "nav_password": "",
+            "nav_pattern": "",
+            "blog_password": ""
         }
         save_config(default_config)
 

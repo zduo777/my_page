@@ -9,6 +9,7 @@
 
 # 数据库文件
 /database.db
+/data/config.json
 
 # Python 缓存
 *.pyc
