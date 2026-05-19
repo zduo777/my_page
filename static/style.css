@@ -463,6 +463,19 @@ main, .content-wrapper {
   color: var(--color-text-primary);
 }
 
+/* 仅针对文章详情页的表格添加边框 */
+.post-content table {
+    border-collapse: collapse; /* 合并边框，避免双线 */
+    width: 100%;
+}
+
+.post-content th,
+.post-content td {
+    border: 1px solid #ddd; /* 添加灰色细实线边框 */
+    padding: 8px; /* 增加一点内边距，防止文字贴边 */
+}
+
+
 .post-content h1, .post-content h2, .post-content h3,
 .post-content h4, .post-content h5, .post-content h6 {
   margin-top: 2.5rem;

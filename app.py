@@ -115,7 +115,7 @@ def post(slug):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
     # 转化为 HTML
-    html_content = markdown.markdown(content, extensions=['fenced_code'])
+    html_content = markdown.markdown(content, extensions=['tables', 'fenced_code', 'codehilite'])
 
     return render_template('post.html', title=row[0], created_at=row[1], content=html_content)
 
@@ -348,4 +348,4 @@ if __name__ == '__main__':
     init_config()
     init_db()
     scan_posts()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
