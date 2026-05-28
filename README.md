@@ -153,37 +153,6 @@ sudo journalctl -u my_page -f   # 查看日志
 sudo nginx -t                   # 测试 nginx 配置
 ```
 
-## 自动更新（GitHub Webhook）
-
-通过GitHub Webhook实现推送代码后自动更新VPS服务。
-
-### VPS上配置Webhook服务
-
-```bash
-# 复制webhook服务配置
-sudo cp webhook.service /etc/systemd/system/
-
-# 启动webhook服务
-sudo systemctl daemon-reload
-sudo systemctl enable webhook
-sudo systemctl start webhook
-
-# 查看webhook状态
-sudo systemctl status webhook
-```
-
-### GitHub仓库配置Webhook
-
-1. 进入GitHub仓库 → Settings → Webhooks → Add webhook
-2. 填写配置：
-   - **Payload URL**: `http://你的服务器IP:5001/webhook`
-   - **Content type**: `application/json`
-   - **Secret**: 可选，设置后需在VPS的webhook.service中配置
-   - **触发事件**: 选择 "Just the push event"
-3. 点击 "Add webhook"
-
-配置完成后，每次向main分支推送代码，VPS会自动拉取更新并重启服务。
-
 ## 写新文章
 
 ### 方式一：在线写作
