@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/var/www/my_page
-ExecStart=/var/www/my_page/venv/bin/python webhook.py
+WorkingDirectory=/opt/services/my_page
+ExecStart=/opt/services/my_page/venv/bin/python webhook.py
 Restart=always
 RestartSec=5
 Environment=WEBHOOK_SECRET=

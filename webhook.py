@@ -29,7 +29,7 @@ def webhook():
             # 拉取最新代码
             result = subprocess.run(
                 ['git', 'pull', 'origin', 'main'],
-                cwd='/var/www/my_page',
+                cwd='/opt/services/my_page',
                 capture_output=True,
                 text=True
             )
