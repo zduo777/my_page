@@ -32,7 +32,7 @@ def init_config():
         save_config(default_config)
 
 # ----- 数据库初始化 -----
-DB_PATH = 'database.db'
+DB_PATH = 'data/site.db'
 POSTS_DIR = 'posts'
 
 def init_db():
