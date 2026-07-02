@@ -1,6 +1,7 @@
 # Claude/IDE 配置
 /.claude
 /.idea
+/.vscode
 /skills
 
 # Python 虚拟环境
